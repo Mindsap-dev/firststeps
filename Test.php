@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,8 +14,8 @@
         table {
             margin: 20px auto;
             border-collapse: collapse;
-            width: 80%;
-            table-layout: fixed;
+            width: 100%;
+            table-layout: auto;
         }
         table, th, td {
             border: 1px solid black;
@@ -23,23 +24,33 @@
             padding: 10px;
             text-align: center;
             word-wrap: break-word;
-            white-space: nowrap;
-            font-size: 0.9em; /* Reduced font size */
+            white-space: normal;
+            font-size: 0.9em;
         }
         th.year, td.year {
-            width: 5%;
-        }
-        th.salary, td.salary {
-            width: 7%;
+            width: 10%;
         }
         th.esop-benefits, td.esop-benefits {
-            width: 20%;
+            width: 30%;
         }
         th.non-esop-benefits, td.non-esop-benefits {
             width: 30%;
         }
         th.total-benefits, td.total-benefits {
-            width: 18%;
+            width: 15%;
+        }
+        th.non-esop-cumulative, td.non-esop-cumulative {
+            width: 20%;
+        }
+        @media screen and (max-width: 768px) {
+            table, th, td {
+                font-size: 0.8em;
+            }
+        }
+        @media screen and (max-width: 480px) {
+            table, th, td {
+                font-size: 0.7em;
+            }
         }
     </style>
 </head>
@@ -70,84 +81,219 @@
         ?>
     </select>
     <br><br>
+    <label for="esop_shares"># of Current ESOP Shares:</label>
+    <input type="number" id="esop_shares" name="esop_shares" step="1" min="0">
+    <br><br>
     <button type="submit">Calculate</button>
 </form>
 
 <?php
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salary']) && isset($_POST['year']) && isset($_POST['num_years']) && isset($_POST['non_esop_percent'])) {
+// Functions to calculate ESOP and Non-ESOP benefits
+function calculateEsop($salary, &$currentShareValue, $esopShares, $year, $isFirstYear) {
+    if ($isFirstYear) {
+        // Calculate the initial value of the shares
+        $currentShareValue = $esopShares * 64.25; // Initial share price
+    } else {
+        // Increase the share value by 6% each subsequent year
+        $currentShareValue *= 1.06;
+    }
+
+    // Yearly ESOP contribution (7% of salary)
+    $yearlyEsop = $salary * 0.07;
+
+    // Combined ESOP value for the year
+    $combinedValue = $currentShareValue + $yearlyEsop;
+
+    return [
+        'display' => "$" . number_format($currentShareValue, 2) . " (Shares Value), $" . number_format($yearlyEsop, 2) . " (Year), Total: $" . number_format($combinedValue, 2),
+        'combinedValue' => $combinedValue,
+    ];
+}
+
+function calculateNonEsop($salary, $employeeContributionPercent) {
+    $matchablePercent = min(0.03, $employeeContributionPercent); // Company matches up to 3%
+    if ($employeeContributionPercent >= 0.04) $matchablePercent += 0.005;
+    if ($employeeContributionPercent >= 0.05) $matchablePercent += 0.005;
+
+    $employeeContribution = $salary * $employeeContributionPercent;
+    $companyMatch = $salary * $matchablePercent;
+
+    return [
+        'display' => "$" . number_format($employeeContribution, 2) . " (Employee), $" . number_format($companyMatch, 2) . " (Company Match)",
+        'total' => $companyMatch,
+    ];
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Process the form data
     $salary = (float)$_POST['salary'];
     $currentYear = (int)$_POST['year'];
     $numYears = (int)$_POST['num_years'];
     $employeeContributionPercent = (int)$_POST['non_esop_percent'] / 100;
-    $cumulativeNonEsop = 0;
-    $cumulativeEsop = 0;
-    $cumulativeBenefitValue = 0;
+    $esopShares = (int)($_POST['esop_shares'] ?? 0);
 
-    // Display results in a grid
+    $salaryData = [];
+    $cumulativeBenefitData = [];
+    $esopTotals = [];
+    $nonEsopTotals = [];
+    $cumulativeNonEsopValue = 0; // Initialize cumulative Non-ESOP value
+
     echo "<h2>Salary and Benefits Growth from Year $currentYear</h2>";
-    echo "<table>";
-    echo "<tr>
-                <th class='year'>Year</th>
-                <th class='salary'>Salary</th>
-                <th class='esop-benefits'>ESOP Benefits</th>
-                <th class='non-esop-benefits'>Non ESOP Benefits</th>
-                <th class='total-benefits'>Benefit Value (Cumulative)</th>
-              </tr>";
+    echo "<table>
+        <tr>
+            <th class='year'>Year</th>
+            <th class='esop-benefits'>ESOP Benefits</th>
+            <th class='non-esop-benefits'>Non ESOP Benefits</th>
+            <th class='total-benefits'>Benefit Value ESOP (Cumulative)</th>
+            <th class='non-esop-cumulative'>Benefit Value Non-ESOP (Cumulative)</th>
+        </tr>";
+
+    $cumulativeBenefitValue = 0;
+    $currentShareValue = 0; // Initialize share value for first year calculation
+    $cumulativeEsopBenefitValue = 0; // Initialize cumulative ESOP benefit value for the first year
 
     for ($i = 0; $i < $numYears; $i++) {
         $year = $currentYear + $i;
+        $isFirstYear = ($i === 0);
 
-        // Calculate ESOP benefits
-        if ($i == 0) {
-            $currentEsop = $salary * 0.06; // 6% of the salary for the first year
-            $cumulativeEsop = $currentEsop; // Set cumulative ESOP to the first year's amount
-            $esopDisplay = number_format($currentEsop, 2) . " (Year)"; // Only yearly value for the first row
-        } else {
-            $currentEsop = $salary * 0.06; // 6% of the current year's salary
-            $cumulativeEsop += $currentEsop; // Add current year's ESOP to cumulative
-            $esopDisplay = number_format($currentEsop, 2) . " (Year), " . number_format($cumulativeEsop, 2) . " (Total)"; // Show both yearly and total for subsequent rows
-        }
+        // Calculate ESOP
+        $esopData = calculateEsop($salary, $currentShareValue, $esopShares, $year, $isFirstYear);
 
-        // Calculate Non ESOP Benefits
-        $companyMatch = 0;
+        // Calculate Non-ESOP
+        $nonEsopData = calculateNonEsop($salary, $employeeContributionPercent);
 
-        if ($employeeContributionPercent > 0) {
-            // Company matches up to 3%
-            $matchablePercent = min(0.03, $employeeContributionPercent);
-            $companyMatch += $matchablePercent;
+        // Update cumulative Non-ESOP value
+        $cumulativeNonEsopValue += $nonEsopData['total'];
 
-            // Additional 0.5% match for contributions at 4% and 5%
-            if ($employeeContributionPercent >= 0.04) {
-                $companyMatch += 0.005; // Match 0.5% for 4%
-            }
-            if ($employeeContributionPercent >= 0.05) {
-                $companyMatch += 0.005; // Match additional 0.5% for 5%
-            }
-        }
+        // Calculate Benefit Value ESOP (Cumulative)
+        $esopColumnTotal = $esopData['combinedValue']; // Total from the ESOP Benefits column
+        $cumulativeEsopBenefitValue = $esopColumnTotal + $cumulativeNonEsopValue; // Add Non-ESOP cumulative value
 
-        $employeeContribution = $salary * $employeeContributionPercent; // Employee's contribution
-        $currentNonEsopBenefits = $salary * $companyMatch; // Current year's company match
-        $cumulativeNonEsop += $currentNonEsopBenefits; // Update cumulative amount
-        $nonEsopDisplay = number_format($employeeContribution, 2) . " (Employee), " . number_format($currentNonEsopBenefits, 2) . " (Company), " . number_format($cumulativeNonEsop, 2) . " (Total)"; // Show all components
+        // Data for chart
+        $salaryData[] = $salary;
+        $cumulativeBenefitData[] = $cumulativeEsopBenefitValue; // Updated cumulative ESOP data
+        $esopTotals[] = $esopData['combinedValue']; // Yearly ESOP Benefits
+        $nonEsopTotals[] = $nonEsopData['total']; // Yearly Non-ESOP company match
 
-        // Calculate Benefit Value (Cumulative)
-        $currentBenefitValue = $currentEsop + $currentNonEsopBenefits; // Current year's ESOP + company match
-        $cumulativeBenefitValue += $currentBenefitValue; // Update cumulative total
-        $benefitValueDisplay = number_format($currentBenefitValue, 2) . " (Year), " . number_format($cumulativeBenefitValue, 2) . " (Total)";
+        // Display row
+        echo "<tr>
+        <td class='year'>$year</td>
+        <td class='esop-benefits'>{$esopData['display']}</td>
+        <td class='non-esop-benefits'>{$nonEsopData['display']}</td>
+        <td class='total-benefits'>$" . number_format($cumulativeEsopBenefitValue, 2) . "</td>
+        <td class='non-esop-cumulative'>$" . number_format($cumulativeNonEsopValue, 2) . "</td>
+    </tr>";
 
-        echo "<tr>";
-        echo "<td class='year'>$year</td>";
-        echo "<td class='salary'>" . number_format($salary, 2) . "</td>";
-        echo "<td class='esop-benefits'>$esopDisplay</td>";
-        echo "<td class='non-esop-benefits'>$nonEsopDisplay</td>";
-        echo "<td class='total-benefits'>$benefitValueDisplay</td>";
-        echo "</tr>";
-
-        $salary *= 1.03; // Increase salary by 3% each year
+        // Increment salary
+        $salary *= 1.03; // 3% salary increase
     }
+
+
 
     echo "</table>";
 }
 ?>
-</body>
-</html>
+
+
+
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<div style="width: 80%; margin: 20px auto;">
+    <canvas id="salaryBenefitChart"></canvas>
+</div>
+<?php if ($_SERVER['REQUEST_METHOD'] === 'POST'): ?>
+    <script>
+        const labels = <?php echo json_encode(range($currentYear, $currentYear + $numYears - 1)); ?>;
+        const salaryData = <?php echo json_encode($salaryData ?? []); ?>;
+        const yearlyEsopTotals = <?php echo json_encode(array_map(function($item) {
+            return number_format($item, 2, '.', ''); // Format yearly ESOP totals for display
+        }, $esopTotals ?? [])); ?>;
+        const cumulativeNonEsopData = <?php echo json_encode(array_reduce(
+            $nonEsopTotals ?? [],
+            function ($carry, $item) {
+                $carry[] = ($carry[count($carry) - 1] ?? 0) + $item;
+                return $carry;
+            },
+            []
+        )); ?>;
+        const cumulativeBenefitsData = <?php echo json_encode($cumulativeBenefitData ?? []); ?>;
+
+        const ctx = document.getElementById('salaryBenefitChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar', // Overall chart type
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        type: 'bar', // Bar chart for Salary
+                        label: 'Salary Projected 3% Annually',
+                        data: salaryData,
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    },
+                    // {
+                    //     type: 'line', // Line chart for Yearly ESOP Benefits
+                    //     label: 'Yearly ESOP Benefits',
+                    //     data: yearlyEsopTotals,
+                    //     backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                    //     borderColor: 'rgba(255, 99, 132, 1)',
+                    //     fill: false,
+                    //     tension: 0.1
+                    // },
+                    {
+                        type: 'line', // Line chart for Cumulative Non-ESOP Benefits
+                        label: 'Cumulative Non-ESOP Benefits',
+                        data: cumulativeNonEsopData,
+                        backgroundColor: 'rgba(255, 206, 86, 0.6)',
+                        borderColor: 'rgba(255, 206, 86, 1)',
+                        fill: false,
+                        tension: 0.1
+                    },
+                    {
+                        type: 'line', // Line chart for Cumulative Benefits (ESOP)
+                        label: 'Cumulative Benefits (ESOP)',
+                        data: cumulativeBenefitsData,
+                        backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        fill: false,
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.dataset.label + ': $' + parseFloat(tooltipItem.raw).toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Year'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Amount ($)'
+                        },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+
+
+<?php endif; ?>
