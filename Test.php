@@ -5,11 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Salary and Benefits Calculator</title>
+    <!-- Include Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
-            text-align: center;
         }
         table {
             margin: 20px auto;
@@ -27,67 +27,88 @@
             white-space: normal;
             font-size: 0.9em;
         }
-        th.year, td.year {
-            width: 10%;
-        }
-        th.esop-benefits, td.esop-benefits {
-            width: 30%;
-        }
-        th.non-esop-benefits, td.non-esop-benefits {
-            width: 30%;
-        }
-        th.total-benefits, td.total-benefits {
-            width: 15%;
-        }
-        th.non-esop-cumulative, td.non-esop-cumulative {
-            width: 20%;
-        }
-        @media screen and (max-width: 768px) {
-            table, th, td {
-                font-size: 0.8em;
-            }
-        }
-        @media screen and (max-width: 480px) {
-            table, th, td {
-                font-size: 0.7em;
-            }
-        }
     </style>
 </head>
+
 <body>
-<h1>Salary and Benefits Growth Calculator</h1>
-<form method="POST" action="">
-    <label for="salary">Enter your current salary:</label>
-    <input type="number" id="salary" name="salary" required step="0.01">
-    <br><br>
-    <label for="year">Select a start year:</label>
-    <select id="year" name="year">
-        <?php
-        for ($i = 2024; $i <= date('Y') + 10; $i++) {
-            echo "<option value='$i'>$i</option>";
-        }
-        ?>
-    </select>
-    <br><br>
-    <label for="num_years">Number of years to generate:</label>
-    <input type="number" id="num_years" name="num_years" value="10" min="1" required>
-    <br><br>
-    <label for="non_esop_percent">Select Non ESOP Percentage (401k):</label>
-    <select id="non_esop_percent" name="non_esop_percent">
-        <?php
-        for ($i = 2; $i <= 15; $i++) {
-            echo "<option value='$i'>$i%</option>";
-        }
-        ?>
-    </select>
-    <br><br>
-    <label for="esop_shares"># of Current ESOP Shares:</label>
-    <input type="number" id="esop_shares" name="esop_shares" step="1" min="0">
-    <br><br>
-    <button type="submit">Calculate</button>
-</form>
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Salary and Benefits Growth Calculator</h1>
+
+    <!-- Bootstrap 2-Column Grid -->
+    <div class="row g-3 h-100 align-items-stretch">
+        <!-- Left Column: Input Form -->
+        <div class="col-lg-6 col-md-12 d-flex">
+            <form method="POST" action="" class="p-4 border rounded shadow w-100">
+                <div class="mb-3">
+                    <label for="salary" class="form-label">Enter your current salary:</label>
+                    <input type="number" id="salary" name="salary" class="form-control" required step="0.01">
+                </div>
+                <div class="mb-3">
+                    <label for="year" class="form-label">Select a start year:</label>
+                    <select id="year" name="year" class="form-select">
+                        <?php
+                        for ($i = 2025; $i <= date('Y') + 10; $i++) {
+                            echo "<option value='$i'>$i</option>";
+                        }
+                        ?>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="num_years" class="form-label">Number of years to generate:</label>
+                    <input type="number" id="num_years" name="num_years" class="form-control" value="10" min="1" required>
+                </div>
+                <div class="mb-3">
+                    <label for="non_esop_percent" class="form-label">Select Non ESOP Percentage (401k):</label>
+                    <select id="non_esop_percent" name="non_esop_percent" class="form-select">
+                        <?php
+                        for ($i = 2; $i <= 15; $i++) {
+                            echo "<option value='$i'>$i%</option>";
+                        }
+                        ?>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="esop_shares" class="form-label"># of Current ESOP Shares:</label>
+                    <input type="number" id="esop_shares" name="esop_shares" class="form-control" step="1" min="0">
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Calculate</button>
+            </form>
+        </div>
+
+        <!-- Right Column: Display Results -->
+        <div class="col-lg-6 col-md-12 d-flex">
+            <?php if ($_SERVER['REQUEST_METHOD'] === 'POST'): ?>
+                <div class="p-4 border rounded shadow bg-light w-100">
+                    <h3 class="text-center mb-4">Your Input Selections</h3>
+                    <p><strong>Salary:</strong> $<?php echo number_format($_POST['salary'], 2); ?></p>
+                    <p><strong>Start Year:</strong> <?php echo htmlspecialchars($_POST['year']); ?></p>
+                    <p><strong>Number of Years:</strong> <?php echo htmlspecialchars($_POST['num_years']); ?></p>
+                    <p><strong>Non-ESOP Percentage:</strong> <?php echo htmlspecialchars($_POST['non_esop_percent']); ?>%</p>
+                    <p><strong>Current ESOP Shares:</strong> <?php echo htmlspecialchars($_POST['esop_shares']); ?></p>
+                </div>
+            <?php else: ?>
+                <div class="p-4 border rounded shadow bg-light w-100 text-center">
+                    <p>Please fill out the form to calculate your results.</p>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Include Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Existing Chart.js code here
+</script>
+
+</body>
+
+</html>
 
 <?php
+
 // Functions to calculate ESOP and Non-ESOP benefits
 function calculateEsop($salary, &$currentShareValue, $esopShares, $year, $isFirstYear) {
     if ($isFirstYear) {
