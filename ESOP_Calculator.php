@@ -1,41 +1,15 @@
 <?php
-// Generate options for dropdowns
-function generateOptions($start, $end, $suffix = "", $step = 1) {
-    $options = "";
-    for ($i = $start; $i <= $end; $i += $step) {
-        $value = $suffix ? number_format($i, 0, '.', ',') . $suffix : $i;
-        $options .= "<option value=\"$i\">$value</option>";
-    }
-    return $options;
-}
-
-// Generate percentage options
-function generatePercentageOptions($start, $end, $default) {
-    $options = "";
-    for ($i = $start; $i <= $end; $i++) {
-        $selected = ($i == $default) ? " selected" : "";
-        $options .= "<option value=\"$i\"$selected>{$i}%</option>";
-    }
-    return $options;
-}
+include './helpers.php';
+include './header.php';
+include './process_form.php';
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <title>Dialectic Engineering</title>
-</head>
 <body>
 <div class="container mt-3">
     <div class="row">
         <div class="col-md-6">
             <div class="card shadow" style="font-size: 0.75rem; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);">
                 <div class="card-header" style="background-color: darkorange;">
-                    <h3 class="card-title text-white fw-bold">Dialectic Engineering</h3>
+                    <h7 class="card-title text-white fw-bold">Dialectic Engineering</h7>
                 </div>
                 <div class="card-body p-2">
                     <form action="process_form.php" method="post">
@@ -100,7 +74,48 @@ function generatePercentageOptions($start, $end, $default) {
                             <span class="fw-bold text-primary" style="font-size: 1.2rem;">$125.00</span>
                         </div>
 
-                        <button type="submit" class="btn btn-orange btn-sm w-100" style="background-color: darkorange; color: white;">Submit</button>
+                        <button type="button" id="submitForm" class="btn btn-orange btn-sm w-100" style="background-color: darkorange; color: white;">Submit</button>
+                        <script>
+                            $(document).ready(function () {
+                                $('#submitForm').on('click', function () {
+                                    // Gather form data
+                                    const formData = {
+                                        age: $('#age').val(),
+                                        compensation: $('#compensation').val(),
+                                        increase: $('#increase').val(),
+                                        retirement_age: $('#retirement_age').val(),
+                                        match: $('#match').val(),
+                                        esop_shares: $('#esop_shares').val(),
+                                        profit_sharing: $('#profit_sharing').val(),
+                                        non_esop_growth: $('#non_esop_growth').val(),
+                                    };
+
+                                    // Send data to the server via AJAX
+                                    $.ajax({
+                                        url: 'process_form.php', // The PHP file to handle the request
+                                        type: 'POST',
+                                        data: formData,
+                                        success: function (response) {
+                                            // Parse the response and update the lower-left card
+                                            const data = JSON.parse(response);
+
+                                            $('#lower-age').text(data.age);
+                                            $('#lower-compensation').text(data.compensation);
+                                            $('#lower-increase').text(data.increase + '%');
+                                            $('#lower-retirement-age').text(data.retirement_age);
+                                            $('#lower-match').text(data.match + '%');
+                                            $('#lower-esop-shares').text(data.esop_shares);
+                                            $('#lower-profit-sharing').text(data.profit_sharing + '%');
+                                            $('#lower-non-esop-growth').text(data.non_esop_growth + '%');
+                                        },
+                                        error: function (xhr, status, error) {
+                                            console.error('Error:', error);
+                                        },
+                                    });
+                                });
+                            });
+                        </script>
+
                     </form>
                 </div>
             </div>
@@ -108,12 +123,12 @@ function generatePercentageOptions($start, $end, $default) {
         <div class="col-md-6">
             <div class="card shadow" style="font-size: 0.75rem; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); height: 100%;">
                 <div class="card-header" style="background-color: darkorange;">
-                    <h3 class="card-title text-white fw-bold">Additional Actions</h3>
+                    <h7 class="card-title text-white fw-bold">Salary & Benefit Calculator</h7>
                 </div>
                 <div class="card-body p-2 d-flex flex-column align-items-center" style="position: relative; height: calc(100% - 70px);">
                     <div class="d-flex justify-content-center mb-3 w-100">
-                        <button class="btn btn-primary btn-sm me-2">Button 1</button>
-                        <button class="btn btn-secondary btn-sm">Button 2</button>
+<!--                        <button class="btn btn-orange btn-lg mb-5" style="background-color: darkorange; color: white;">Button 1</button>-->
+<!--                        <button class="btn btn-orange btn-lg mb-5" style="background-color: darkorange; color: white;">Button 2</button>-->
                     </div>
                     <div class="mb-3 text-center">
                         <label class="form-label fw-bold">Estimated Balance at Retirement:</label>
@@ -133,53 +148,203 @@ function generatePercentageOptions($start, $end, $default) {
     </div>
     <div class="row mt-3">
         <div class="col-12">
-            <div class="card shadow" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);">
-                <div class="card-body d-flex flex-column" style="height: 400px;">
+            <div class="card shadow" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); height: auto;">
+                <div class="card-body d-flex flex-column" style="height: auto;">
                     <div class="d-flex" style="flex: 1;">
                         <div class="border-end" style="flex: 0 0 35%; padding-right: 10px;">
                             <form>
-                                <div class="mb-1">
-                                    <label for="age" class="form-label fw-bold" style="font-size: 0.75rem;">Current Age:</label>
-                                    <select id="age" name="age" class="form-select form-select-sm" style="width: 100%;">
-                                        <?php echo generateOptions(22, 70); ?>
-                                    </select>
-                                </div>
-                                <div class="mb-1">
-                                    <label for="compensation" class="form-label fw-bold" style="font-size: 0.75rem;">Annual Compensation:</label>
-                                    <select id="compensation" name="compensation" class="form-select form-select-sm" style="width: 100%;">
-                                        <?php echo generateOptions(50000, 200000, "$", 5000); ?>
-                                    </select>
-                                </div>
-                                <div class="mb-1">
-                                    <label for="increase" class="form-label fw-bold" style="font-size: 0.75rem;">Compensation Increase:</label>
-                                    <select id="increase" name="increase" class="form-select form-select-sm" style="width: 100%;">
-                                        <?php echo generatePercentageOptions(3, 6, 3); ?>
-                                    </select>
-                                </div>
-                                <div class="mb-1">
-                                    <label for="retirement_age" class="form-label fw-bold" style="font-size: 0.75rem;">Retirement Age:</label>
-                                    <select id="retirement_age" name="retirement_age" class="form-select form-select-sm" style="width: 100%;">
-                                        <?php echo generateOptions(50, 70); ?>
-                                    </select>
+                                <div class="row">
+                                    <!-- Column 1 -->
+                                    <div class="col-6">
+                                        <div class="mb-2">
+                                            <label for="age" class="form-label fw-bold" style="font-size: 0.75rem;">Current Age:</label>
+                                            <select id="age" name="age" class="form-select form-select-sm" style="width: 100%;">
+                                                <?php echo generateOptions(22, 70); ?>
+                                            </select>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label for="compensation" class="form-label fw-bold" style="font-size: 0.75rem;">Annual Compensation:</label>
+                                            <select id="compensation" name="compensation" class="form-select form-select-sm" style="width: 100%;">
+                                                <?php echo generateOptions(50000, 200000, "$", 5000); ?>
+                                            </select>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label for="increase" class="form-label fw-bold" style="font-size: 0.75rem;">Comp. Increase:</label>
+                                            <select id="increase" name="increase" class="form-select form-select-sm" style="width: 100%;">
+                                                <?php echo generatePercentageOptions(3, 6, 3); ?>
+                                            </select>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label for="retirement_age" class="form-label fw-bold" style="font-size: 0.75rem;">Ret. Age:</label>
+                                            <select id="retirement_age" name="retirement_age" class="form-select form-select-sm" style="width: 100%;">
+                                                <?php echo generateOptions(50, 70); ?>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <!-- Column 2 -->
+                                    <div class="col-6">
+                                        <div class="mb-2">
+                                            <label for="match" class="form-label fw-bold" style="font-size: 0.75rem;">401K Deferral %:</label>
+                                            <select id="match" name="match" class="form-select form-select-sm" style="width: 100%;">
+                                                <?php echo generatePercentageOptions(1, 20, 1); ?>
+                                            </select>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label for="esop_shares" class="form-label fw-bold" style="font-size: 0.75rem;">ESOP Shares:</label>
+                                            <input type="number" id="esop_shares" name="esop_shares" class="form-control form-control-sm" style="width: 100%;" placeholder="Shares">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label for="profit_sharing" class="form-label fw-bold" style="font-size: 0.75rem;">Profit Sharing:</label>
+                                            <select id="profit_sharing" name="profit_sharing" class="form-select form-select-sm" style="width: 100%;">
+                                                <?php echo generatePercentageOptions(3, 6, 3); ?>
+                                            </select>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label for="non_esop_growth" class="form-label fw-bold" style="font-size: 0.75rem;">Non-ESOP Growth:</label>
+                                            <select id="non_esop_growth" name="non_esop_growth" class="form-select form-select-sm" style="width: 100%;">
+                                                <?php echo generatePercentageOptions(3, 15, 3); ?>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
                             </form>
                         </div>
-                        <div style="flex: 1; padding-left: 10px;">
-                            <p class="text-center fw-bold">Right Section (65%)</p>
+                        <div style="flex: 1; padding-left: 10px;height: auto;">
+                            <p class="text-center fw-bold"></p>
+                            <div class="d-flex flex-grow-1">
+                                <table id="benefitsGrid" class="table table-striped table-bordered" style="width:100%">
+                                    <thead>
+                                    <tr>
+                                        <th>Age</th>
+                                        <th>Salary</th>
+                                        <th>ESOP Benefits</th>
+                                        <th>Non ESOP Benefits (401k)</th>
+                                        <th>Benefit Value ESOP (Cumulative)</th>
+                                        <th>Benefit Value Non-ESOP (Cumulative)</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <script>
+                                        $(document).ready(function () {
+                                            // Sample Data
+                                            const gridData = [
+                                                { age: 25, salary: 60000, esopBenefits: 5000, nonEsopBenefits: 3000, esopCumulative: 5000, nonEsopCumulative: 3000 },
+                                                { age: 26, salary: 62000, esopBenefits: 5500, nonEsopBenefits: 3200, esopCumulative: 10500, nonEsopCumulative: 6200 },
+                                                { age: 27, salary: 64000, esopBenefits: 6000, nonEsopBenefits: 3400, esopCumulative: 16500, nonEsopCumulative: 9600 },
+                                                { age: 28, salary: 66000, esopBenefits: 6500, nonEsopBenefits: 3600, esopCumulative: 23000, nonEsopCumulative: 13200 },
+                                            ];
+
+                                            // Initialize DataTable
+                                            $('#benefitsGrid').DataTable({
+                                                data: gridData,
+                                                columns: [
+                                                    { data: 'age', title: 'Age' },
+                                                    { data: 'salary', title: 'Salary', render: $.fn.dataTable.render.number(',', '.', 2, '$') },
+                                                    { data: 'esopBenefits', title: 'ESOP Benefits', render: $.fn.dataTable.render.number(',', '.', 2, '$') },
+                                                    { data: 'nonEsopBenefits', title: 'Non ESOP Benefits (401k)', render: $.fn.dataTable.render.number(',', '.', 2, '$') },
+                                                    { data: 'esopCumulative', title: 'Benefit Value ESOP (Cumulative)', render: $.fn.dataTable.render.number(',', '.', 2, '$') },
+                                                    { data: 'nonEsopCumulative', title: 'Benefit Value Non-ESOP (Cumulative)', render: $.fn.dataTable.render.number(',', '.', 2, '$') },
+                                                ],
+                                                paging: true,
+                                                searching: false,
+                                                ordering: true,
+                                                info: false,
+                                                responsive: true,
+                                            });
+                                        });
+                                    </script>
+
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                     <hr class="my-3">
-                    <div class="d-flex flex-grow-1">
-                        <!-- Placeholder for grid -->
-                        <p class="text-center w-100">Grid Section</p>
+                    <div id="chartContainer" style="width: 80%; margin: auto;">
+                        <canvas id="benefitsChart" style="max-width: 100%; height: 300px;"></canvas>
                     </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            // Sample Data
+                            const chartData = {
+                                labels: ['Age 25', 'Age 26', 'Age 27', 'Age 28'],
+                                datasets: [
+                                    {
+                                        type: 'bar',
+                                        label: 'Salary',
+                                        data: [60000, 62000, 64000, 66000],
+                                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                                        borderColor: 'rgba(54, 162, 235, 1)',
+                                        borderWidth: 1,
+                                    },
+                                    {
+                                        type: 'line',
+                                        label: 'Benefit Value ESOP (Cumulative)',
+                                        data: [5000, 10500, 16500, 23000],
+                                        borderColor: 'rgba(255, 99, 132, 1)',
+                                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                                        fill: false,
+                                        tension: 0.4,
+                                    },
+                                    {
+                                        type: 'line',
+                                        label: 'Benefit Value Non-ESOP (Cumulative)',
+                                        data: [3000, 6200, 9600, 13200],
+                                        borderColor: 'rgba(75, 192, 192, 1)',
+                                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                        fill: false,
+                                        tension: 0.4,
+                                    },
+                                ],
+                            };
+
+                            // Chart Configuration
+                            const config = {
+                                type: 'bar',
+                                data: chartData,
+                                options: {
+                                    responsive: true,
+                                    plugins: {
+                                        legend: {
+                                            position: 'top',
+                                        },
+                                        tooltip: {
+                                            mode: 'index',
+                                            intersect: false,
+                                        },
+                                    },
+                                    scales: {
+                                        x: {
+                                            title: {
+                                                display: true,
+                                                text: 'Age',
+                                            },
+                                        },
+                                        y: {
+                                            title: {
+                                                display: true,
+                                                text: 'Value ($)',
+                                            },
+                                            beginAtZero: true,
+                                        },
+                                    },
+                                },
+                            };
+
+                            // Initialize Chart
+                            const ctx = document.getElementById('benefitsChart').getContext('2d');
+                            new Chart(ctx, config);
+                        });
+                    </script>
+
                 </div>
             </div>
         </div>
     </div>
 
 
-<script>
+
+    <script>
     const ctx = document.getElementById('esopChart').getContext('2d');
     new Chart(ctx, {
         type: 'bar',
@@ -209,6 +374,6 @@ function generatePercentageOptions($start, $end, $default) {
         }
     });
 </script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
