@@ -3,7 +3,7 @@
 function generateOptions($start, $end, $suffix = "", $step = 1) {
     $options = "";
     for ($i = $start; $i <= $end; $i += $step) {
-        $value = $suffix ? number_format($i, 0, '.', ',') . $suffix : $i;
+        $value = $suffix ? helpers . phpnumber_format($i, 0, '.', ',') . $suffix : $i;
         $options .= "<option value=\"$i\">$value</option>";
     }
     return $options;

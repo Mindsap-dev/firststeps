@@ -9,7 +9,7 @@ include './process_form.php';
         <div class="col-md-6">
             <div class="card shadow" style="font-size: 0.75rem; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);">
                 <div class="card-header" style="background-color: darkorange;">
-                    <h7 class="card-title text-white fw-bold">Dialectic Engineering</h7>
+                    <h6 class="card-title text-white fw-bold">Dialectic Engineering</h6>
                 </div>
                 <div class="card-body p-2">
                     <form action="process_form.php" method="post">
@@ -123,7 +123,7 @@ include './process_form.php';
         <div class="col-md-6">
             <div class="card shadow" style="font-size: 0.75rem; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); height: 100%;">
                 <div class="card-header" style="background-color: darkorange;">
-                    <h7 class="card-title text-white fw-bold">Salary & Benefit Calculator</h7>
+                    <h6 class="card-title text-white fw-bold">Salary & Benefit Calculator</h6>
                 </div>
                 <div class="card-body p-2 d-flex flex-column align-items-center" style="position: relative; height: calc(100% - 70px);">
                     <div class="d-flex justify-content-center mb-3 w-100">
@@ -147,118 +147,70 @@ include './process_form.php';
         </div>
     </div>
     <div class="row mt-3">
-        <div class="col-12">
-            <div class="card shadow" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); height: auto;">
-                <div class="card-body d-flex flex-column" style="height: auto;">
-                    <div class="d-flex" style="flex: 1;">
-                        <div class="border-end" style="flex: 0 0 35%; padding-right: 10px;">
-                            <form>
-                                <div class="row">
-                                    <!-- Column 1 -->
-                                    <div class="col-6">
-                                        <div class="mb-2">
-                                            <label for="age" class="form-label fw-bold" style="font-size: 0.75rem;">Current Age:</label>
-                                            <select id="age" name="age" class="form-select form-select-sm" style="width: 100%;">
-                                                <?php echo generateOptions(22, 70); ?>
-                                            </select>
-                                        </div>
-                                        <div class="mb-2">
-                                            <label for="compensation" class="form-label fw-bold" style="font-size: 0.75rem;">Annual Compensation:</label>
-                                            <select id="compensation" name="compensation" class="form-select form-select-sm" style="width: 100%;">
-                                                <?php echo generateOptions(50000, 200000, "$", 5000); ?>
-                                            </select>
-                                        </div>
-                                        <div class="mb-2">
-                                            <label for="increase" class="form-label fw-bold" style="font-size: 0.75rem;">Comp. Increase:</label>
-                                            <select id="increase" name="increase" class="form-select form-select-sm" style="width: 100%;">
-                                                <?php echo generatePercentageOptions(3, 6, 3); ?>
-                                            </select>
-                                        </div>
-                                        <div class="mb-2">
-                                            <label for="retirement_age" class="form-label fw-bold" style="font-size: 0.75rem;">Ret. Age:</label>
-                                            <select id="retirement_age" name="retirement_age" class="form-select form-select-sm" style="width: 100%;">
-                                                <?php echo generateOptions(50, 70); ?>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <!-- Column 2 -->
-                                    <div class="col-6">
-                                        <div class="mb-2">
-                                            <label for="match" class="form-label fw-bold" style="font-size: 0.75rem;">401K Deferral %:</label>
-                                            <select id="match" name="match" class="form-select form-select-sm" style="width: 100%;">
-                                                <?php echo generatePercentageOptions(1, 20, 1); ?>
-                                            </select>
-                                        </div>
-                                        <div class="mb-2">
-                                            <label for="esop_shares" class="form-label fw-bold" style="font-size: 0.75rem;">ESOP Shares:</label>
-                                            <input type="number" id="esop_shares" name="esop_shares" class="form-control form-control-sm" style="width: 100%;" placeholder="Shares">
-                                        </div>
-                                        <div class="mb-2">
-                                            <label for="profit_sharing" class="form-label fw-bold" style="font-size: 0.75rem;">Profit Sharing:</label>
-                                            <select id="profit_sharing" name="profit_sharing" class="form-select form-select-sm" style="width: 100%;">
-                                                <?php echo generatePercentageOptions(3, 6, 3); ?>
-                                            </select>
-                                        </div>
-                                        <div class="mb-2">
-                                            <label for="non_esop_growth" class="form-label fw-bold" style="font-size: 0.75rem;">Non-ESOP Growth:</label>
-                                            <select id="non_esop_growth" name="non_esop_growth" class="form-select form-select-sm" style="width: 100%;">
-                                                <?php echo generatePercentageOptions(3, 15, 3); ?>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                        <div style="flex: 1; padding-left: 10px;height: auto;">
-                            <p class="text-center fw-bold"></p>
-                            <div class="d-flex flex-grow-1">
-                                <table id="benefitsGrid" class="table table-striped table-bordered" style="width:100%">
-                                    <thead>
-                                    <tr>
-                                        <th>Age</th>
-                                        <th>Salary</th>
-                                        <th>ESOP Benefits</th>
-                                        <th>Non ESOP Benefits (401k)</th>
-                                        <th>Benefit Value ESOP (Cumulative)</th>
-                                        <th>Benefit Value Non-ESOP (Cumulative)</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <script>
-                                        $(document).ready(function () {
-                                            // Sample Data
-                                            const gridData = [
-                                                { age: 25, salary: 60000, esopBenefits: 5000, nonEsopBenefits: 3000, esopCumulative: 5000, nonEsopCumulative: 3000 },
-                                                { age: 26, salary: 62000, esopBenefits: 5500, nonEsopBenefits: 3200, esopCumulative: 10500, nonEsopCumulative: 6200 },
-                                                { age: 27, salary: 64000, esopBenefits: 6000, nonEsopBenefits: 3400, esopCumulative: 16500, nonEsopCumulative: 9600 },
-                                                { age: 28, salary: 66000, esopBenefits: 6500, nonEsopBenefits: 3600, esopCumulative: 23000, nonEsopCumulative: 13200 },
-                                            ];
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="card shadow" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); height: auto;">
+                    <div class="card-body d-flex flex-column" style="height: auto;">
+                        <!-- Grid Section -->
+                        <div style="width: 100%; padding: 10px;">
+                            <table id="benefitsGrid" class="table table-striped table-bordered" style="width:100%">
+                                <thead>
+                                <tr>
+                                    <th>Age</th>
+                                    <th>Salary</th>
+                                    <th>ESOP Benefits</th>
+                                    <th>Non ESOP Benefits (401k)</th>
+                                    <th>Benefit Value ESOP (Cumulative)</th>
+                                    <th>Benefit Value Non-ESOP (Cumulative)</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <script>
+                                    $(document).ready(function () {
+                                        // Sample Data (10 Rows)
+                                        const gridData = [
+                                            { age: 25, salary: 60000, esopBenefits: 5000, nonEsopBenefits: 3000, esopCumulative: 5000, nonEsopCumulative: 3000 },
+                                            { age: 26, salary: 62000, esopBenefits: 5500, nonEsopBenefits: 3200, esopCumulative: 10500, nonEsopCumulative: 6200 },
+                                            { age: 27, salary: 64000, esopBenefits: 6000, nonEsopBenefits: 3400, esopCumulative: 16500, nonEsopCumulative: 9600 },
+                                            { age: 28, salary: 66000, esopBenefits: 6500, nonEsopBenefits: 3600, esopCumulative: 23000, nonEsopCumulative: 13200 },
+                                            { age: 29, salary: 68000, esopBenefits: 7000, nonEsopBenefits: 3800, esopCumulative: 30000, nonEsopCumulative: 17000 },
+                                            { age: 30, salary: 70000, esopBenefits: 7500, nonEsopBenefits: 4000, esopCumulative: 37500, nonEsopCumulative: 21000 },
+                                            { age: 31, salary: 72000, esopBenefits: 8000, nonEsopBenefits: 4200, esopCumulative: 45500, nonEsopCumulative: 25200 },
+                                            { age: 32, salary: 74000, esopBenefits: 8500, nonEsopBenefits: 4400, esopCumulative: 54000, nonEsopCumulative: 29600 },
+                                            { age: 33, salary: 76000, esopBenefits: 9000, nonEsopBenefits: 4600, esopCumulative: 63000, nonEsopCumulative: 34200 },
+                                            { age: 34, salary: 78000, esopBenefits: 9500, nonEsopBenefits: 4800, esopCumulative: 72500, nonEsopCumulative: 39000 },
+                                        ];
 
-                                            // Initialize DataTable
-                                            $('#benefitsGrid').DataTable({
-                                                data: gridData,
-                                                columns: [
-                                                    { data: 'age', title: 'Age' },
-                                                    { data: 'salary', title: 'Salary', render: $.fn.dataTable.render.number(',', '.', 2, '$') },
-                                                    { data: 'esopBenefits', title: 'ESOP Benefits', render: $.fn.dataTable.render.number(',', '.', 2, '$') },
-                                                    { data: 'nonEsopBenefits', title: 'Non ESOP Benefits (401k)', render: $.fn.dataTable.render.number(',', '.', 2, '$') },
-                                                    { data: 'esopCumulative', title: 'Benefit Value ESOP (Cumulative)', render: $.fn.dataTable.render.number(',', '.', 2, '$') },
-                                                    { data: 'nonEsopCumulative', title: 'Benefit Value Non-ESOP (Cumulative)', render: $.fn.dataTable.render.number(',', '.', 2, '$') },
-                                                ],
-                                                paging: true,
-                                                searching: false,
-                                                ordering: true,
-                                                info: false,
-                                                responsive: true,
-                                            });
+                                        // Initialize DataTable with Scroll and No Search
+                                        $('#benefitsGrid').DataTable({
+                                            data: gridData,
+                                            columns: [
+                                                { data: 'age', title: 'Age' },
+                                                { data: 'salary', title: 'Salary', render: $.fn.dataTable.render.number(',', '.', 2, '$') },
+                                                { data: 'esopBenefits', title: 'ESOP Benefits', render: $.fn.dataTable.render.number(',', '.', 2, '$') },
+                                                { data: 'nonEsopBenefits', title: 'Non ESOP Benefits (401k)', render: $.fn.dataTable.render.number(',', '.', 2, '$') },
+                                                { data: 'esopCumulative', title: 'Benefit Value ESOP (Cumulative)', render: $.fn.dataTable.render.number(',', '.', 2, '$') },
+                                                { data: 'nonEsopCumulative', title: 'Benefit Value Non-ESOP (Cumulative)', render: $.fn.dataTable.render.number(',', '.', 2, '$') },
+                                            ],
+                                            paging: false, // Disable pagination
+                                            searching: false, // Disable search functionality
+                                            scrollY: '400px', // Set vertical scroll height
+                                            scrollCollapse: true, // Allow the table to shrink if less data
+                                            ordering: true,
+                                            info: false,
+                                            responsive: true,
                                         });
-                                    </script>
-
-                                    </tbody>
-                                </table>
-                            </div>
+                                    });
+                                </script>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+
                     <hr class="my-3">
                     <div id="chartContainer" style="width: 80%; margin: auto;">
                         <canvas id="benefitsChart" style="max-width: 100%; height: 300px;"></canvas>
@@ -339,10 +291,6 @@ include './process_form.php';
 
                 </div>
             </div>
-        </div>
-    </div>
-
-
 
     <script>
     const ctx = document.getElementById('esopChart').getContext('2d');
@@ -376,4 +324,4 @@ include './process_form.php';
 </script>
 
 </body>
-</html>
+
