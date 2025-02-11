@@ -300,14 +300,17 @@
         $(document).ready(function () {
             renderStockPriceChart();
         });
+
         // Handle the Calculate button click
         $("#calculateButton").click(function () {
+            alert("Calculate button clicked! ✅");
             console.log("Calculate button clicked!");
+
 
             // Retrieve Input Values
             const currentAge = parseInt($("#currentAge").val());
             const retirementAge = parseInt($("#retirementAge").val());
-            let currentSalary = parseFloat($("#currentSalary").val());
+            let currentSalary = parseFloat($("#currentSalary").val().replace(/,/g, ''));
             const esopShares = parseInt($("#esopShares").val()) || 0;
             const percent401k = parseFloat($("#percent401k").val()) || 0;
             const growth401k = parseFloat($("#growth401k").val()) || 0;
@@ -359,8 +362,64 @@
                     cumulativeBenefitNonEsop += employeeContribution + companyMatch;
                 }
 
-                // **Apply Compound Growth to 401K Cumulative**
-                let totalWithGrowth = cumulativeBenefitNonEsop * Math.pow(1 + (growth401k / 100), (retirementAge - currentAge));
+
+                // ARRAY-BASED METHOD - FIXES GROWTH CALCULATION
+                let totalWithGrowth = 0; // This stores the rolling 401k balance
+                let cumulativeContributions = 0; // Tracks total contributions separately
+
+                let contributions = []; // Array to store each year's contribution
+
+                for (let age = currentAge; age <= retirementAge; age++) {
+                    // Employee 401k Contribution
+                    const employeeContribution = (percent401k / 100) * currentSalary;
+
+                    // Calculate Employer Match
+                    let companyMatch = 0;
+                    if (percent401k <= 3) {
+                        companyMatch = currentSalary * (percent401k / 100);
+                    } else if (percent401k <= 5) {
+                        companyMatch = (currentSalary * 0.03) + (currentSalary * (percent401k - 3) * 0.005);
+                    } else {
+                        companyMatch = (currentSalary * 0.03) + (currentSalary * 0.005 * 2);
+                    }
+
+                    // Total Contribution for the Year
+                    const totalContribution = employeeContribution + companyMatch;
+
+
+                    // **Step 1: Apply Growth to Previous Balance FIRST**
+                    if (age > currentAge) { // Growth starts after the first year
+                        //  Ensure growth applies ONLY to past balances, NOT new contributions
+                        let previousBalance = totalWithGrowth; // Store last year's balance
+
+                    // // Step 1: Apply Growth to Previous Balance BEFORE Adding New Contributions
+                    //     totalWithGrowth = previousBalance * (1 + (growth401k / 100)); // Correct compounding
+                    //     totalWithGrowth += totalContribution; // Now add new contributions AFTER growth
+
+                    }
+
+                    // **Step 2: Add This Year's Contribution AFTER Growth**
+                    totalWithGrowth += totalContribution;
+                    cumulativeContributions += totalContribution;
+
+                    // Store contribution for debugging
+                    contributions.push(totalContribution);
+
+                    // Debugging Output
+                    console.log(`Age ${age}: Contribution = ${totalContribution.toFixed(2)}, Cumulative Contributions = ${cumulativeContributions.toFixed(2)}, Total w/ Growth = ${totalWithGrowth.toFixed(2)}`);
+
+                    // Store yearly values for charting
+                    nonEsopCumulativeData.push(totalWithGrowth);
+
+                    // Increase salary for next year (simulating a 3% raise)
+                    currentSalary *= 1.03;
+                }
+
+
+
+                // Replace the nonEsopCumulativeData push with this corrected calculation
+                nonEsopCumulativeData.push(totalWithGrowth);
+
 
                 labels.push(age);
                 salaryData.push(currentSalary);
