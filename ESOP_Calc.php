@@ -48,8 +48,8 @@
         /* Second Chart - Salary, ESOP, and 401k Growth */
         .chart-container-2 {
             display: flex;
-            justify-content: center;  /* Centers the chart horizontally */
-            align-items: center;  /* Centers the chart vertically */
+            justify-content: center;
+            align-items: center;
             width: 100%;
             height: 700px !important;
             max-height: 900px;
@@ -186,12 +186,12 @@
 </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        //Area for Stock Price Chart
+
         document.addEventListener("DOMContentLoaded", function () {
             let ctx = document.getElementById("stockPriceChart").getContext("2d");
 
             let stockPriceChart = new Chart(ctx, {
-                type: "line", // Line chart for stock price trends
+                type: "line",
                 data: {
                     labels: ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023'],
                     datasets: [{
@@ -229,10 +229,10 @@
     </script>
 
     <script>
-        //Area for the calculate button
+
         $(document).ready(function () {
             $("#calculateButton").click(function () {
-                // Capture values
+
                 let currentAge = $("#currentAge").val();
                 let expectedAge = $("#retirementAge").val();
                 let currentSalary = $("#currentSalary").val();
@@ -241,7 +241,7 @@
                 let ESOPShares = $("#esopShares").val();
                 let esopStockPrice = $("#esopStockPrice").val();
 
-                // Store values in an object for easy access
+
                 let esopData = {
                     currentAge: parseInt(currentAge),
                     expectedAge: parseInt(expectedAge),
@@ -252,25 +252,25 @@
                     esopStockPrice: parseFloat(esopStockPrice)
                 };
 
-                // Store data for retrieval later (can use localStorage if persistence is needed)
+
                 console.log("ESOP Data Captured:", esopData);
 
-                // You can now use this data for calculations later
+
             });
         });
     </script>
     <style>
-        /* Ensure the column headers wrap to two lines if needed */
+
         .jqx-grid-header {
             white-space: normal !important;
             word-wrap: break-word !important;
             text-align: center !important;
-            font-size: 12px; /* Adjust font size for better fit */
+            font-size: 12px;
         }
     </style>
 
     <style>
-        /* Ensure headers wrap to multiple lines if needed */
+
         .jqx-grid-header {
             white-space: normal !important;
             word-wrap: break-word !important;
@@ -278,7 +278,7 @@
             font-size: 12px; /* Adjust font size for better fit */
         }
 
-        /* Ensure grid cells wrap text */
+
         .jqx-grid-cell {
             white-space: normal !important;
             word-wrap: break-word !important;
@@ -352,12 +352,12 @@
             ]
         });
 
-        // Function to format numbers as currency ($0.00)
+
         function formatCurrency(value) {
             return "$" + parseFloat(value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
-        // Function to populate grid when Calculate is clicked
+
         $("#calculateButton").click(function () {
             let currentAge = parseInt($("#currentAge").val());
             let expectedAge = parseInt($("#retirementAge").val());
@@ -371,36 +371,36 @@
                 return;
             }
 
-            // Initialize salary and ESOP stock value
+
             totalSalary = currentSalary;
             updatedStock = esopShares * DialecticStock;
-            previousUpdatedStock = updatedStock; // Track previous year's stock value
-            totalEsop = updatedStock + (totalSalary * 0.06); // Initial ESOP Total
-            let totalRetirementBalance = 0; // Store the final retirement balance
+            previousUpdatedStock = updatedStock;
+            totalEsop = updatedStock + (totalSalary * 0.06);
+            let totalRetirementBalance = 0;
 
             let gridData = [];
 
             for (let age = currentAge; age <= expectedAge; age++) {
-                let currentShare = totalSalary * 0.06; // 6% of salary added to ESOP
+                let currentShare = totalSalary * 0.06;
 
                 if (age === currentAge) {
-                    // First year calculation
+
                     totalEsop = updatedStock + currentShare;
                 } else {
-                    // Calculate the difference in updatedStock
+
                     let stockDifference = updatedStock - previousUpdatedStock;
 
-                    // Update total ESOP
+
                     totalEsop = totalEsop + stockDifference + currentShare;
                 }
 
-                // Store previous updatedStock for next year's calculation
+
                 previousUpdatedStock = updatedStock;
 
-                // Calculate Employee 401k Contribution
+
                 personal401k = totalSalary * (percent401k / 100);
 
-                // Calculate Company Match
+
                 if (percent401k <= 3) {
                     companyMatch = totalSalary * (percent401k / 100);
                 } else if (percent401k <= 5) {
@@ -409,24 +409,24 @@
                     companyMatch = (totalSalary * 0.03) + (totalSalary * 0.005 * 2);
                 }
 
-                // Calculate totalNonESOP401k (Employee + Employer 401k)
+
                 totalNonESOP401k = personal401k + companyMatch;
 
-                // First Year Contribution Calculation
+
                 if (age === currentAge) {
                     totalContribution = companyMatch + totalEsop;
                 } else {
                     totalContribution = totalContribution + companyMatch + totalEsop;
                 }
 
-                // First Year 401k Cumulative Calculation
+
                 if (age === currentAge) {
                     totalNonEsopCumulative = totalNonESOP401k * (1 + growth401k / 100);
                 } else {
                     totalNonEsopCumulative = (totalNonEsopCumulative + totalNonESOP401k) * (1 + growth401k / 100);
                 }
 
-                // Store the final retirement balance (ESOP + 401k Growth)
+
                 totalRetirementBalance = totalContribution + totalNonEsopCumulative;
 
                 gridData.push({
@@ -437,18 +437,18 @@
                     BenefitValueNonESOP: `${formatCurrency(totalNonESOP401k)} | -> ${growth401k}% Growth ${formatCurrency(totalNonEsopCumulative)}`
                 });
 
-                // Multiply ESOP Stock by 1.06 for growth in the next year
+
                 updatedStock *= 1.06;
 
-                // Increase salary by 3% for the next year
+
                 totalSalary *= 1.03;
             }
 
-            // Update the Estimated Balance at Retirement in Card 2
+
             $("#retirementBalance").text(formatCurrency(totalRetirementBalance));
 
 
-            // ✅ Update "Total Dialectic Contributions" in Card 2
+
             $("#totalContributions").text(formatCurrency(totalContribution));
 
             $("#jqxgrid").jqxGrid({ source: new $.jqx.dataAdapter({ localdata: gridData, datatype: "array" }) });
@@ -477,7 +477,7 @@
     </div>
 </div>
 
-    <!-- Adjust the Chart Container to Make It Taller -->
+
     <div class="chart-container">
         <canvas id="myChart" style="height: 600px !important; max-height: 800px;"></canvas>
     </div>
@@ -499,12 +499,12 @@
         }
 
         myChart2 = new Chart(ctx, {
-            type: 'bar', // Bar Chart for Salary
+            type: 'bar',
             data: {
-                labels: ages, // X-axis: Age
+                labels: ages,
                 datasets: [
                     {
-                        label: "Salary Growth ($)", // Bar Graph (Salary)
+                        label: "Salary Growth ($)",
                         data: salaryHistory.map(value => parseFloat(value.toFixed(2))),
                         backgroundColor: "rgba(54, 162, 235, 0.5)", // Blue Bars
                         borderColor: "rgba(54, 162, 235, 1)",
@@ -512,7 +512,7 @@
                         yAxisID: 'y-axis-retirement'
                     },
                     {
-                        label: "ESOP Growth ($)", // Line Graph (ESOP)
+                        label: "ESOP Growth ($)",
                         data: employerContributionsHistory.map(value => parseFloat(value.toFixed(2))),
                         type: 'line',
                         borderColor: "rgba(75, 192, 192, 1)", // Green Line
@@ -522,7 +522,7 @@
                         yAxisID: 'y-axis-retirement'
                     },
                     {
-                        label: "401k Growth ($)", // Line Graph (401k)
+                        label: "401k Growth ($)",
                         data: benefitValueNonEsopHistory.map(value => parseFloat(value.toFixed(2))),
                         type: 'line',
                         borderColor: "rgba(255, 99, 132, 1)", // Red Line
@@ -532,7 +532,7 @@
                         yAxisID: 'y-axis-retirement'
                     },
                     {
-                        label: "Total Retirement ($)", // NEW LINE GRAPH - Sum of ESOP + 401k
+                        label: "Total Retirement ($)",
                         data: totalRetirementHistory.map(value => parseFloat(value.toFixed(2))),
                         type: 'line',
                         borderColor: "rgba(255, 165, 0, 1)", // Orange Line
@@ -546,7 +546,7 @@
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false, // Allow independent height adjustment
+                maintainAspectRatio: false,
                 scales: {
                     x: {
                         title: {
@@ -570,7 +570,7 @@
         });
     }
 
-    // Trigger update when the Calculate button is clicked
+
     $("#calculateButton").click(function () {
         let currentAge = parseInt($("#currentAge").val());
         let expectedAge = parseInt($("#retirementAge").val());
