@@ -457,6 +457,120 @@
             console.log("Final Retirement Balance: ", totalRetirementBalance);
             console.log("Final Total Dialectic Contributions: ", totalContribution);
 
+            $(document).ready(function () {
+                $("#calculateButton").click(function () {
+                    // 📝 Capture User Inputs
+                    let currentAge = parseInt($("#currentAge").val());
+                    let expectedAge = parseInt($("#retirementAge").val());
+                    let currentSalary = parseFloat($("#currentSalary").val()) || 0;
+                    let percent401k = parseFloat($("#percent401k").val()) || 0;
+                    let growth401k = parseFloat($("#growth401k").val()) || 0;
+                    let esopShares = parseFloat($("#esopShares").val()) || 0;
+                    let esopStockPrice = parseFloat($("#esopStockPrice").val()) || 64.25; // Default stock price
+
+                    // 🛑 Validate Inputs
+                    if (isNaN(currentAge) || isNaN(expectedAge) || currentAge >= expectedAge) {
+                        alert("Please select valid age values.");
+                        return;
+                    }
+
+                    // 📌 Log Input Data for Debugging
+                    let esopData = {
+                        currentAge,
+                        expectedAge,
+                        currentSalary,
+                        percent401k,
+                        growth401k,
+                        esopShares,
+                        esopStockPrice
+                    };
+                    console.log("ESOP Data Captured:", esopData);
+
+                    // 📊 Initialize Calculation Variables
+                    let DialecticStock = esopStockPrice;
+                    let updatedStock = esopShares * DialecticStock;
+                    let previousUpdatedStock = updatedStock;
+                    let totalSalary = currentSalary;
+                    let totalEsop = 0;
+                    let totalEmployerContributions = 0;
+                    let totalNonEsopCumulative = 0;
+                    let cumulativeCompanyMatch = 0;
+                    let cumulativeEsopContributions = 0;
+
+                    let salaryHistory = [];
+                    let employerContributionsHistory = [];
+                    let benefitValueNonEsopHistory = [];
+                    let ages = [];
+
+                    // 🔄 Loop Over Each Year Until Retirement Age
+                    for (let age = currentAge; age <= expectedAge; age++) {
+                        ages.push(age);
+                        salaryHistory.push(totalSalary);
+
+                        let currentShare = totalSalary * 0.06;
+
+                        if (age === currentAge) {
+                            totalEsop = updatedStock + currentShare;
+                            cumulativeEsopContributions = updatedStock + currentShare;
+                        } else {
+                            let stockDifference = updatedStock - previousUpdatedStock;
+                            totalEsop = totalEsop + stockDifference + currentShare;
+                            cumulativeEsopContributions += currentShare;
+                        }
+
+                        previousUpdatedStock = updatedStock;
+
+                        // 💰 Calculate 401k Contributions & Company Match
+                        let personal401k = totalSalary * (percent401k / 100);
+                        let companyMatch;
+
+                        if (percent401k <= 3) {
+                            companyMatch = totalSalary * (percent401k / 100);
+                        } else if (percent401k <= 5) {
+                            companyMatch = (totalSalary * 0.03) + (totalSalary * (percent401k - 3) * 0.005);
+                        } else {
+                            companyMatch = (totalSalary * 0.03) + (totalSalary * 0.005 * 2);
+                        }
+
+                        let totalNonESOP401k = personal401k + companyMatch;
+                        cumulativeCompanyMatch += companyMatch;
+
+                        // 🔢 Calculate Total Employer Contributions
+                        if (age === currentAge) {
+                            totalEmployerContributions = totalEsop + companyMatch;
+                        } else {
+                            totalEmployerContributions = totalEsop + cumulativeCompanyMatch;
+                        }
+
+                        employerContributionsHistory.push(totalEmployerContributions);
+
+                        // 📈 Compute Non-ESOP Cumulative Growth
+                        if (age === currentAge) {
+                            totalNonEsopCumulative = totalNonESOP401k * (1 + growth401k / 100);
+                        } else {
+                            totalNonEsopCumulative = (totalNonEsopCumulative + totalNonESOP401k) * (1 + growth401k / 100);
+                        }
+
+                        benefitValueNonEsopHistory.push(totalNonEsopCumulative);
+
+                        // 🔄 Update Stock & Salary Growth
+                        updatedStock *= 1.06;
+                        totalSalary *= 1.03;
+
+                        // 📝 Debugging Logs for Verification
+                        console.log("Year:", age);
+                        console.log("Total ESOP:", totalEsop);
+                        console.log("Current Year Match:", companyMatch);
+                        console.log("Cumulative Company Match:", cumulativeCompanyMatch);
+                        console.log("Employer Contributions:", totalEmployerContributions);
+                        console.log("----------------------------------");
+                    }
+
+                    // 📊 Update Chart with New Data
+                    updateChart2(salaryHistory, employerContributionsHistory, benefitValueNonEsopHistory, ages);
+                });
+            });
+
         });
     });
 </script>
@@ -591,6 +705,9 @@
         let totalEsop = 0;
         let totalEmployerContributions = 0;
         let totalNonEsopCumulative = 0;
+        let previousCompanyMatchTotal = 0;
+        let cumulativeCompanyMatch = 0;
+        let cumulativeEsopContributions = 0;
 
         let salaryHistory = [];
         let employerContributionsHistory = [];
@@ -609,7 +726,12 @@
                 let stockDifference = updatedStock - previousUpdatedStock;
                 totalEsop = totalEsop + stockDifference + currentShare;
             }
-
+            // ESOP Total Calculation
+            if (age === currentAge) {
+                cumulativeEsopContributions = updatedStock + currentShare;
+            } else {
+                cumulativeEsopContributions += currentShare;
+            }
             previousUpdatedStock = updatedStock;
 
             let personal401k = totalSalary * (percent401k / 100);
@@ -624,13 +746,29 @@
             }
 
             let totalNonESOP401k = personal401k + companyMatch;
+            cumulativeCompanyMatch += companyMatch;
 
             if (age === currentAge) {
-                totalEmployerContributions = companyMatch + totalEsop;
+                totalEmployerContributions = totalEsop + companyMatch; // Year 1 only includes current year match
             } else {
-                totalEmployerContributions = totalEmployerContributions + companyMatch + totalEsop;
+                totalEmployerContributions = totalEsop + cumulativeCompanyMatch;
             }
+
+
+
             employerContributionsHistory.push(totalEmployerContributions);
+            console.log("Year:", age);
+            console.log("Total ESOP:", totalEsop);
+            console.log("Current Year Match:", companyMatch);
+            console.log("Cumulative Company Match:", cumulativeCompanyMatch);
+            console.log("Employer Contributions BEFORE Calculation:", totalEmployerContributions);
+
+ // ✅ Ensure this is correct:
+            totalEmployerContributions = totalEsop + cumulativeCompanyMatch;
+
+            console.log("Employer Contributions AFTER Calculation:", totalEmployerContributions);
+            console.log("----------------------------------");
+
 
             if (age === currentAge) {
                 totalNonEsopCumulative = totalNonESOP401k * (1 + growth401k / 100);
